@@ -3,21 +3,14 @@ import pandas as pd
 import yfinance as yf
 import pandas_ta as ta
 
-# =============================================================================
-# SUPER SCANNER - ESTRATÉGIA DE EXAUSTÃO (EMA 69 + IFR2)
-# =============================================================================
-st.set_page_config(page_title="SUPER SCANNER - ALTA PRECISÃO", layout="wide")
+st.set_page_config(page_title="SUPER SCANNER - 100 AÇÕES + BDR + ETF", layout="wide")
 
 def analisar_precisao(ticker):
     try:
-        # Puxa 1 ano para ter dados sólidos da EMA 69
         df = yf.download(ticker, period="1y", interval="1d", progress=False)
         if df is None or len(df) < 70: return None
-        
-        # Limpeza de colunas (correção para novas versões do yfinance)
         df.columns = [col[0] if isinstance(col, tuple) else col for col in df.columns]
         
-        # CÁLCULO DOS INDICADORES
         df['EMA69'] = ta.ema(df['Close'], length=69)
         df['IFR2'] = ta.rsi(df['Close'], length=2)
         adx_df = ta.adx(df['High'], df['Low'], df['Close'], length=14)
@@ -25,16 +18,8 @@ def analisar_precisao(ticker):
         
         atual = df.iloc[-1]
         
-        # REGRAS DO SUPER SCANNER (ALTA PROBABILIDADE)
-        # 1. Tendência: Preço acima da EMA 69
-        # 2. Exaustão: IFR de 2 períodos abaixo de 10 (Pânico de curto prazo)
-        # 3. Força: ADX acima de 25 (Evita papéis "mortos")
-        
-        acima_ema69 = atual['Close'] > atual['EMA69']
-        ifr_extremo = atual['IFR2'] < 10
-        tendencia_forte = atual['ADX_14'] > 25
-        
-        if acima_ema69 and ifr_extremo and tendencia_forte:
+        # Estratégia IFR2 < 10 + EMA69
+        if (atual['Close'] > atual['EMA69']) and (atual['IFR2'] < 10) and (atual['ADX_14'] > 20):
             return {
                 "Preço": round(float(atual['Close']), 2),
                 "IFR2": round(atual['IFR2'], 1),
@@ -42,59 +27,40 @@ def analisar_precisao(ticker):
                 "EMA 69": round(float(atual['EMA69']), 2)
             }
         return None
-    except:
-        return None
+    except: return None
 
 def main():
-    st.title("🎯 Super Scanner de Alta Precisão")
-    st.markdown("### Estratégia: IFR2 < 10 em Tendência de Alta (EMA 69)")
-
-    # TODAS AS LISTAS UNIFICADAS
-    acoes = [
-        "PETR4.SA", "VALE3.SA", "ITUB4.SA", "BBDC4.SA", "BBAS3.SA", "ABEV3.SA", "JBSS3.SA", "ELET3.SA", 
-        "WEGE3.SA", "RENT3.SA", "ITSA4.SA", "HAPV3.SA", "GGBR4.SA", "SUZB3.SA", "B3SA3.SA", "MGLU3.SA", 
-        "LREN3.SA", "EQTL3.SA", "CSAN3.SA", "RDOR3.SA", "PRIO3.SA", "VIBR3.SA", "UGPA3.SA", "SBSP3.SA", 
-        "ASAI3.SA", "CCRO3.SA", "RADL3.SA", "CMIG4.SA", "CPLE6.SA", "TOTS3.SA", "EMBR3.SA", "BRFS3.SA"
-    ]
+    st.title("🎯 Super Scanner Unificado (100+ Ativos)")
     
-    bdrs = [
-        "AAPL34.SA", "AMZO34.SA", "GOGL34.SA", "MSFT34.SA", "TSLA34.SA", "META34.SA", "NFLX34.SA", 
-        "NVDC34.SA", "MELI34.SA", "BABA34.SA", "DISB34.SA", "PYPL34.SA", "VISA34.SA", "WMTB34.SA"
-    ]
-    
-    etfs_fiis = [
-        "BOVA11.SA", "IVVB11.SA", "SMAL11.SA", "HASH11.SA", "GOLD11.SA", "GARE11.SA", "HGLG11.SA", 
-        "XPLG11.SA", "XPML11.SA", "VISC11.SA", "KNRI11.SA", "BTLG11.SA", "MXRF11.SA"
+    # LISTA DAS 100 AÇÕES + BDRs + ETFs/FIIs
+    lista_total = [
+        "RRRP3.SA", "ALOS3.SA", "ALPA4.SA", "ABEV3.SA", "ARZZ3.SA", "ASAI3.SA", "AZUL4.SA", "B3SA3.SA", "BBAS3.SA", "BBDC3.SA", 
+        "BBDC4.SA", "BBSE3.SA", "BEEF3.SA", "BPAC11.SA", "BRAP4.SA", "BRFS3.SA", "BRKM5.SA", "CCRO3.SA", "CMIG4.SA", "CMIN3.SA", 
+        "COGN3.SA", "CPFE3.SA", "CPLE6.SA", "CRFB3.SA", "CSAN3.SA", "CSNA3.SA", "CYRE3.SA", "DXCO3.SA", "EGIE3.SA", "ELET3.SA", 
+        "ELET6.SA", "EMBR3.SA", "ENEV3.SA", "ENGI11.SA", "EQTL3.SA", "EZTC3.SA", "FLRY3.SA", "GGBR4.SA", "GOAU4.SA", "GOLL4.SA", 
+        "HAPV3.SA", "HYPE3.SA", "ITSA4.SA", "ITUB4.SA", "JBSS3.SA", "KLBN11.SA", "LREN3.SA", "LWSA3.SA", "MGLU3.SA", "MRFG3.SA", 
+        "MRVE3.SA", "MULT3.SA", "NTCO3.SA", "PETR3.SA", "PETR4.SA", "PRIO3.SA", "RADL3.SA", "RAIL3.SA", "RAIZ4.SA", "RENT3.SA", 
+        "RECV3.SA", "SANB11.SA", "SBSP3.SA", "SLCE3.SA", "SMTO3.SA", "SUZB3.SA", "TAEE11.SA", "TIMS3.SA", "TOTS3.SA", "TRPL4.SA", 
+        "UGPA3.SA", "USIM5.SA", "VALE3.SA", "VIVT3.SA", "VIVA3.SA", "WEGE3.SA", "YDUQ3.SA", "AURE3.SA", "BHIA3.SA", "BRCO11.SA", 
+        "CASH3.SA", "CVCB3.SA", "DIRR3.SA", "ENAT3.SA", "GMAT3.SA", "IFCM3.SA", "INTB3.SA", "JHSF3.SA", "KEPL3.SA", "MOVI3.SA", 
+        "ORVR3.SA", "PETZ3.SA", "PLAS3.SA", "POMO4.SA", "POSI3.SA", "RANI3.SA", "RAPT4.SA", "STBP3.SA", "TEND3.SA", "TUPY3.SA",
+        "AAPL34.SA", "AMZO34.SA", "GOGL34.SA", "MSFT34.SA", "TSLA34.SA", "NVDC34.SA", "BOVA11.SA", "IVVB11.SA", "SMAL11.SA", 
+        "GARE11.SA", "HGLG11.SA", "XPML11.SA", "KNRI11.SA"
     ]
 
-    lista_total = list(set(acoes + bdrs + etfs_fiis)) # Remove duplicatas caso existam
+    st.write(f"📊 Monitorando **{len(lista_total)}** ativos simultaneamente.")
 
-    if st.button('🚀 Iniciar Varredura em Todos os Mercados'):
+    if st.button('🚀 Iniciar Varredura Global de Precisão'):
         hits = []
         barra = st.progress(0)
-        status = st.empty()
-        
         for i, t in enumerate(lista_total):
-            status.text(f"Analisando Ativo {i+1}/{len(lista_total)}: {t.replace('.SA', '')}")
             res = analisar_precisao(t)
             if res:
-                hits.append({
-                    "ATIVO": t.replace(".SA", ""),
-                    "PREÇO": res["Preço"],
-                    "IFR2": res["IFR2"],
-                    "ADX": res["ADX"],
-                    "EMA 69 (D)": res["EMA 69"]
-                })
+                hits.append({"ATIVO": t.replace(".SA", ""), "PREÇO": res["Preço"], "IFR2": res["IFR2"], "ADX": res["ADX"]})
             barra.progress((i + 1) / len(lista_total))
         
-        status.success("Varredura Global Finalizada!")
-        
-        if hits:
-            st.subheader("🔥 Oportunidades de Exaustão Encontradas")
-            st.table(pd.DataFrame(hits))
-            st.info("💡 Estes ativos estão em 'pânico' de curto prazo dentro de uma tendência de alta. Geralmente revertem rápido.")
-        else:
-            st.warning("Nenhum ativo está em ponto de exaustão extrema (IFR2 < 10) no momento.")
+        if hits: st.table(pd.DataFrame(hits))
+        else: st.warning("Nenhum sinal de exaustão extrema encontrado.")
 
 if __name__ == "__main__":
     main()
